@@ -1,0 +1,533 @@
+
+Copy and paste the R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+#############################################################################
+# Question 1: Have total emissions from PM2.5 decreased                     #
+# in the United States from 1999 to 2008? Using the base plotting system,   #
+# make a plot showing the total PM2.5 emission from all sources for each    #
+# of the years 1999, 2002, 2005, and 2008.                                  #
+#############################################################################
+
+#Collapse Emissions Data by Year and Source
+q1_data <- nei_scc_data %>%
+        group_by(year) %>%
+        summarise(emissions=sum(emissions)) %>%
+        mutate(emissions_mm=emissions/1000000)
+
+#Set up PNG Device and Plot 1 File
+png(filename = "plot1.png", width=640, height=480)
+
+#Set Transparent Background
+par(bg = "transparent", cex.axis=1.25,cex.lab=1.25,cex.main=1.7, mar=c(5.1,5.1,4.1,2.1))
+
+#Plot Total Emissions by Year and change color/marker by Source
+with (q1_data,
+        plot(year,emissions_mm,
+        pch=19, col="black", #set symbol to filled black circle
+        main=expression("Total " * PM[2.5] * " Emissions by Year (Across All Sources)"),
+        xlab="Year",
+        ylab=expression("Millions of Tons of " * PM[2.5] * " Emissions"),
+        xlim=c(1999,2008),
+        ylim=c(0,8)))
+#Add X-axis tick marks
+axis(1, at=c(1999:2008),)
+
+#Connect Points
+lines(q1_data$year,q1_data$emissions_mm,lwd=1)
+
+#Draw Linear Trend Line
+abline(lm(q1_data$emissions_mm ~ q1_data$year),col="blue", lwd=2)
+
+#Create Legend
+legend("topright", col = c("blue"),lwd=2, c("Linear Trend Line"))
+
+#Close Device
+dev.off()
+
+
+
+paste the R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+#########################################################
+# Question 2: Have total emissions from PM2.5 decreased #
+# in Baltimore City, Maryland (fips == "24510") from    #
+# 1999 to 2008? Use the base plotting system to make    #
+# a plot answering this question.                       #
+#########################################################
+
+#Select Observations from Baltimate City, MD (fips == "24510")
+# then Collapse Emissions Data by Year
+q2_data <- nei_scc_data %>%
+        filter(fips == "24510") %>% 
+        group_by(year) %>%
+        summarise(emissions=sum(emissions)) %>%
+        mutate(emissions_k=emissions/1000)
+
+
+#Set up PNG Device and Plot 2 File
+png(filename = "plot2.png", width=640, height=480)
+
+#Set Transparent Background
+par(bg = "transparent", cex.axis=1.25,cex.lab=1.25,cex.main=1.7, mar=c(5.1,5.1,4.1,2.1))
+
+#Plot Total Emissions by Year and change color/marker by Source
+with (q2_data,
+      plot(year,emissions_k,
+           pch=19, col="black", #set symbol to filled black circle
+           main=expression("Total " * PM[2.5] * " Emissions by Year for Baltimore City, Maryland"),
+           xlab="Year",
+           ylab=expression("Thousands of Tons of " * PM[2.5] * " Emissions"),
+           xlim=c(1999,2008),
+           ylim=c(0,4)))
+#Add subtitle
+mtext("(Across All Sources)",side = 3,cex=1.5)
+
+#Add X-axis tick marks
+axis(1, at=c(1999:2008),)
+axis(2, at=c(seq(.5,3.5,1)))
+
+#Connect Points
+lines(q2_data$year,q2_data$emissions_k,lwd=1)
+#Draw Linear Trend Line
+abline(lm(q2_data$emissions_k ~ q2_data$year),col="blue", lwd=2)
+#Create Legend
+legend("topright", col = c("blue"),lwd=2, c("Linear Trend Line"))
+
+#Close Device
+dev.off()
+
+
+
+ and paste the R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+#############################################################################
+# Question 3: Of the four types of sources indicated by the type            #
+# (point, nonpoint, onroad, nonroad) variable, which of these four sources  #
+# have seen decreases in emissions from 1999–2008 for Baltimore City?       #
+# Which have seen increases in emissions from 1999–2008?                    #
+# Use the ggplot2 plotting system to make a plot answer this question.      #
+############################################################################
+
+# Create Data Set with Observations from Baltimate City, MD (fips == "24510")
+# Then Collapse that Data Set by Year and Source
+# Also edit type and year to be factor variables
+q3_data <- nei_scc_data %>%
+    filter(fips == "24510") %>%
+    mutate(type = as.factor(type),year = as.factor(year)) %>%
+    group_by(year, type) %>%
+    summarise(emissions=sum(emissions))
+    
+#Set up PNG Device and Plot 3 File
+png(filename = "plot3.png", width=640, height=480)
+
+
+#Save Plots for All and Total Emissions by Year
+base3 <- ggplot(q3_data, aes(year,emissions))
+
+base3 + geom_point(color="blue",size=4) + facet_grid(type~.,scales="free") +
+    geom_line(aes(year,emissions,group=type),color="black",size=1) +
+    geom_smooth(aes(year,emissions,group=type),method="lm", se=FALSE, color="red", size=1.25) +
+    labs(title=expression("Total " * PM[2.5] * " Emissions by Year and Source Type for Baltimore City, MD")) +
+    labs(x="Year") + labs(y=expression("Tons of " * PM[2.5] * " Emissions"))
+
+#Close Device
+dev.off()
+
+
+
+
+paste the R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+######################################################################
+# Question 4: Across the United States, how have emissions from coal #
+# combustion-related sources changed from 1999–2008?                 #
+######################################################################
+
+#Find Variables Differentiating Coal
+q4_data <- nei_scc_data 
+
+#Edit Coal Source Names to be More Concise
+q4_data$scc.level.three <- sub("(.*)\\((.*)","\\1",q4_data$scc.level.three,perl = TRUE,ignore.case=TRUE, fixed=FALSE)
+
+q4_data$coal_indicator1 <- ifelse(grepl("coal", q4_data$scc.level.one,ignore.case=TRUE), 1, 0)
+q4_data$coal_indicator2 <- ifelse(grepl("coal", q4_data$scc.level.two,ignore.case=TRUE), 1, 0)
+q4_data$coal_indicator3 <- ifelse(grepl("coal", q4_data$scc.level.three,ignore.case=TRUE), 1, 0)
+q4_data$coal_indicator4 <- ifelse(grepl("coal", q4_data$scc.level.four,ignore.case=TRUE), 1, 0)
+
+#Subset Data to Only Include Coal
+# Collapses Emissions Data by Coal Source (Level 3)
+# Convert Year and Type to Factor Variables, and change emission units
+
+q4_data <- filter(q4_data,coal_indicator3==1) %>%
+    mutate(type = as.factor(type),year = as.factor(year)) %>%
+    group_by(year, scc.level.three) %>%
+    summarise(emissions=sum(emissions)) %>%
+    rename(Coal_Source = scc.level.three) %>% 
+    mutate(emissions_k=emissions/1000)
+
+#Generate Color Palette for Bar Chart
+colors4 <- brewer.pal(9, "Paired")
+palette4 <- colorRampPalette(colors4)
+
+#Set up PNG Device and Plot 4 File
+png(filename = "plot4.png", width=640, height=480)
+
+#Save Plots for All and Total Emissions by Year
+base4 <- ggplot(q4_data, aes(year,emissions_k,fill=Coal_Source)) 
+
+#Stat="identity" means the value of the variable is used
+base4 +  geom_bar(stat="identity",colour="black") + scale_fill_manual(values=palette4(9)) +
+    labs(title=expression("Bar Chart of " * PM[2.5] * " Emissions from Coal Combustion by Year")) +
+    labs(x="Year") + labs(y=expression("Thousands of Tons of " * PM[2.5] * " Emissions")) + 
+        scale_y_continuous(limits=c(0,600),breaks=seq(0, 600, 50))
+#Close Device
+dev.off()
+
+
+
+
+the R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+
+#########################################################
+# Question 5: How have emissions from motor vehicle     #
+# sources changed from 1999–2008 in Baltimore City?     #
+#########################################################
+
+#Select Observations from Baltimate City, MD (fips == "24510")
+# And convert Type and Year to Factor Variables
+q5_data <- nei_scc_data %>%
+    filter(fips == "24510") %>%
+    mutate(type = as.factor(type),year = as.factor(year))
+    
+q5_data$vehicle_indicator <- ifelse(grepl("vehicle", q5_data$scc.level.two,ignore.case=TRUE), 1, 0)    
+
+# then Collapse Emissions Data by Year
+q5_data <- filter(q5_data, vehicle_indicator==1) %>%
+    group_by(year,scc.level.three) %>%
+    summarise(emissions=sum(emissions)) %>%
+    rename(Vehicle_Type=scc.level.three)
+
+
+#Generate Color Palette for Bar Chart
+colors5 <- brewer.pal(12, "Paired")
+palette5 <- colorRampPalette(colors5)
+
+#Set up PNG Device and Plot 5 File
+png(filename = "plot5.png", width=640, height=480)
+
+#Save Plots for All and Total Emissions by Year
+base5 <- ggplot(q5_data, aes(year,emissions,fill=Vehicle_Type)) 
+
+#Stat="identity" means the value of the variable is used
+base5 +  geom_bar(stat="identity",colour="black") + scale_fill_manual(values=palette5(16)) +
+    labs(title=expression(PM[2.5] * " Emissions from Vehicles in Baltimore, MD by Year")) +
+    labs(x="Year") + labs(y=expression("Tons of " * PM[2.5] * " Emissions")) + 
+    scale_y_continuous(limits=c(0,405),breaks=seq(0, 400, 50)) 
+
+#Close Device
+dev.off()
+
+
+
+R code file for the plot uploaded in the previous question.
+
+
+# Exploratory Data Analysis Assignment 2
+# JHU Data Science Specialization 
+# Created:  7/25/15
+# Updated:  7/25/15
+
+#####################################################################
+# The overall goal of this assignment is to explore the             #
+# National Emissions Inventory database and see what it say about   #
+# fine particulate matter pollution in the United states over the   #
+# 10-year period 1999–2008                                          #
+#####################################################################
+
+#Load packages
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+####################
+# Read/Clean Data  #
+####################
+
+# Set Working directory
+setwd("../Desktop/EDA_Assignment_2")
+
+#Read in the EPA National Emissions Inventory Data
+nei_data <- readRDS("summarySCC_PM25.rds")
+names(nei_data) <- tolower(names(nei_data))
+
+#Read in the Source Classification Code Table
+scc_data <- readRDS("Source_Classification_Code.rds")
+names(scc_data) <- tolower(names(scc_data))
+
+#Merge Data
+nei_scc_data <- merge(x = nei_data,y = scc_data,by="scc",all.x=TRUE)
+
+###########################################################
+# You must address the following questions and tasks      #
+# in your exploratory analysis. For each question/task    #
+# you will need to make a single plot. Unless specified,  #
+# you can use any plotting system in R to make your plot. #
+###########################################################
+
+
+#####################################################################
+# Question 6: Compare emissions from motor vehicle sources          #              
+# in Baltimore City with emissions from motor vehicle sources       #
+# in Los Angeles County, California (fips == "06037"). Which city   #
+# has seen greater changes over time in motor vehicle emissions?    #
+#####################################################################
+
+#Select Observations from Baltimate City, MD (fips == "24510") and
+# Los Angeles County, California (fips == "06037")
+# Convert FIPS and Year to Factor Variables
+q6_data <- nei_scc_data %>%
+    filter(fips == "24510"|fips == "06037") %>%
+    mutate(Location = as.factor(fips),year = as.factor(year))
+
+#Convert Fips to Location
+q6_data$Location <- ifelse(grepl("24510",q6_data$Location), "Baltimore City, MD", "LA County, CA")
+
+#Identify and Filter for Vehicle Emissions
+# then Collapse Emissions Data by Year
+q6_data$vehicle_indicator <- ifelse(grepl("vehicle", q6_data$scc.level.two,ignore.case=TRUE), 1, 0)    
+q6_data <- filter(q6_data, vehicle_indicator==1) %>%
+    group_by(year,Location) %>%
+    summarise(emissions=sum(emissions)) 
+
+#Set up PNG Device and Plot 6 File
+png(filename = "plot6.png", width=640, height=480)
+
+#Save Plots for All and Total Emissions by Year
+base6 <- ggplot(q6_data, aes(year,emissions,fill=Location))
+
+#Plot Bar Chart
+base6 + geom_bar(stat="identity",color="black",position=position_dodge()) +
+    labs(title=expression(PM[2.5] * " Emissions from Vehicles in Baltimore, MD and LA County, CA by Year")) +
+    labs(x="Year") + labs(y=expression("Tons of " * PM[2.5] * " Emissions")) + 
+    scale_y_continuous(limits=c(0,7400),breaks=seq(0, 7500, 500)) +
+    geom_line(aes(year,emissions,group=Location),color="orange",size=1.5) +
+    geom_text(aes(label=round(emissions,1)),color="blue",size=8)
+
+#Close Device
+dev.off()
